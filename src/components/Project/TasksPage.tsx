@@ -14,6 +14,11 @@ const theme = createTheme({
   },
 });
 
+interface User {
+  userId: string;
+  username: string;
+  avatar: number;
+}
 export const TasksPage = () => {
   const {
     tasks,
@@ -30,7 +35,7 @@ export const TasksPage = () => {
   } = useTasksPage();
 
   const token = Cookies.get('payload');
-  const userDetails = token ? decryptPayload(token) : null;
+  const userDetails: User|null = token ? decryptPayload(token) as User : null;
 
   if (loading) {
     return (
@@ -76,7 +81,7 @@ export const TasksPage = () => {
           }}
         >
           {users.map((user) => (
-            <Box key={user.id} sx={{ width: '200px', textAlign: 'center' }}>
+            <Box key={user.userId} sx={{ width: '200px', textAlign: 'center' }}>
               <Avatar
                 src={`${process.env.PUBLIC_URL}/assets/${user.avatar}.png`}
                 alt={user.username}
@@ -86,7 +91,7 @@ export const TasksPage = () => {
                 {user.username}
               </Typography>
               {tasks
-                .filter((task) => task.assignedTo === user.id)
+                .filter((task) => task.assignedTo === user.userId)
                 .map((task) => (
                   <Paper key={task.id} sx={{ margin: '8px', padding: '8px', display: 'flex', alignItems: 'center' }}>
                     <Checkbox
@@ -94,7 +99,7 @@ export const TasksPage = () => {
                       onChange={() => handleToggleComplete(task.id, !task.completed)}
                     />
                     <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="body1">{task.name}</Typography>
+                      <Typography variant="body1">{task.title}</Typography>
                       <Typography variant="body2" color="textSecondary">{task.description}</Typography>
                     </Box>
                   </Paper>
@@ -119,8 +124,8 @@ export const TasksPage = () => {
                   />
                   <IconButton
                     color="primary"
-                    onClick={() => handleAddTask(user.id)}
-                    disabled={addingTask === user.id}
+                    onClick={() => handleAddTask(user.userId)}
+                    disabled={addingTask === user.userId}
                   >
                     <AddIcon />
                   </IconButton>

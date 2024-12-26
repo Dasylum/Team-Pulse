@@ -3,21 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^6.3.0",
-    "@mui/material": "^6.3.0",
-    "@types/crypto-js": "^4.2.2",
-    "cra-template-typescript": "1.2.0",
-    "crypto-js": "^4.2.0",
-    "firebase": "^11.1.0",
-    "js-cookie": "^3.0.5",
-    "jsonwebtoken": "^9.0.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router-dom": "^7.1.1",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.0",
+    "@types/crypto-js": "^4.1.1",
+    "cra-template-typescript": "1.1.2",
+    "crypto-js": "^4.1.1",
+    "firebase": "^9.6.1",
+    "js-cookie": "^3.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.1",
-    "uuid": "^11.0.3"
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -44,12 +44,6 @@
     ]
   },
   "devDependencies": {
-    "@types/js-cookie": "^3.0.6",
-    "@types/node": "^22.10.2",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2",
-    "typescript": "^5.7.2",
-    "web-vitals": "^4.2.4"
   },
   "browser": {
     "crypto": false

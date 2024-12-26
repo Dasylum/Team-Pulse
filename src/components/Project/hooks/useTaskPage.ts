@@ -7,14 +7,14 @@ import Cookies from 'js-cookie';
 
 interface Task {
   id: string;
-  name: string;
+  title: string;
   description: string;
   assignedTo: string;
   completed: boolean;
 }
 
 interface User {
-  id: string;
+  userId: string;
   username: string;
   avatar: number;
 }
@@ -49,6 +49,10 @@ export const useTasksPage = () => {
         setTasks(tasksData);
 
         // Fetch project and users
+        if (!projectId) {
+          console.error('Project ID is undefined');
+          return;
+        }
         const projectDocRef = doc(db, 'projects', projectId);
         const projectDoc = await getDoc(projectDocRef);
         if (projectDoc.exists()) {
@@ -75,14 +79,15 @@ export const useTasksPage = () => {
     setAddingTask(userId);
     try {
       const newTask = {
-        name: newTaskName,
+        title: newTaskName,
         description: newTaskDescription,
         assignedTo: userId,
         projectId,
-        completed: false,
+        isDone: false,
       };
+      console.log(newTask);
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
-      setTasks([...tasks, { id: docRef.id, ...newTask }]);
+      setTasks([...tasks, { id: docRef.id, title: newTaskName, description: newTaskDescription, assignedTo: userId, completed: false }]);
       setNewTaskName('');
       setNewTaskDescription('');
     } catch (error) {
