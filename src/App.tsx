@@ -23,7 +23,7 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = Cookies.get('token');
+    const token = Cookies.get('payload');
     if (token) {
       const decryptedPayload = decryptPayload(token);
       setUserDetails(decryptedPayload as { username: string, avatar: number, userId: string });
@@ -60,7 +60,7 @@ function App() {
               Welcome, {userDetails.username}!
             </Typography>
             {creatingProject ? (
-              <CreateProject onProjectCreated={handleProjectCreated} userDetails={userDetails.userId} />
+              <CreateProject onProjectCreated={handleProjectCreated} userDetails={Cookies.get('payload')} />
             ) : (
               <>
                 <Button variant="contained" color="primary" onClick={handleCreateProjectClick}>
