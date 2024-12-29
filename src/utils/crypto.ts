@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 
-const secretKey = 'your-32-character-secret-key'; // Ensure the key is exactly 32 characters
+const secretKey = process.env.REACT_APP_SECRET_KEY || 'DEFAULT_32_CHARACTER_KEY'; // Ensure the key is exactly 32 characters
 
 export const encryptPayload = (payload: object): string => {
     const payloadString = JSON.stringify(payload); // Convert the payload to a string

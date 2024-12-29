@@ -1,50 +1,15 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import React from 'react';
 import { TextField, CircularProgress } from '@mui/material';
-import { collection, addDoc } from 'firebase/firestore';
 
-import { db } from '../../firebaseConfig';
+import { useCreateProject } from './hooks/useCreateProject';
 
 interface Props {
   onProjectCreated: (projectName: string) => void;
   userDetails: string | undefined;
 }
 
-export const CreateProject = ({ onProjectCreated, userDetails }: Props) => {
-  const [projectName, setProjectName] = useState<string>('');
-  const [error, setError] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const handleProjectNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.length > 25) {
-      setError(true);
-    } else {
-      setError(false);
-    }
-    setProjectName(value);
-  };
-
-  const handleKeyPress = async (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !error) {
-      setLoading(true);
-      try {
-        // Add project to Firestore
-        const createdProjectDetails = await addDoc(collection(db, 'projects'), {
-          name: projectName,
-          users: [userDetails]
-        });
-
-       const projectId = createdProjectDetails.id;
-
-        // Pass the projectId to onProjectCreated
-        onProjectCreated(projectId);
-      } catch (err) {
-        console.error('Failed to create project:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+export const CreateProject = ({ onProjectCreated }: Props) => {
+  const { projectName, error, loading, handleProjectNameChange, handleKeyPress } = useCreateProject({ onProjectCreated });
 
   return (
     <>

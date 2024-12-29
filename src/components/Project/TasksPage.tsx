@@ -1,10 +1,11 @@
 import React from 'react';
 import { Typography, Box, Paper, CircularProgress, Avatar, TextField, Checkbox, IconButton } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Save as SaveIcon, Edit as EditIcon } from '@mui/icons-material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Cookies from 'js-cookie';
 import { decryptPayload } from '../../utils/crypto';
 import { useTasksPage } from './hooks/useTaskPage';
+import { useTaskActions } from './hooks/useTaskActions';
 
 const theme = createTheme({
   palette: {
@@ -22,6 +23,7 @@ interface User {
 export const TasksPage = () => {
   const {
     tasks,
+    setTasks,
     users,
     projectName,
     loading,
@@ -33,6 +35,17 @@ export const TasksPage = () => {
     handleAddTask,
     handleToggleComplete,
   } = useTasksPage();
+
+  const {
+    editingTask,
+    editTaskName,
+    editTaskDescription,
+    handleDeleteTask,
+    handleEditTask,
+    handleUpdateTask,
+    setEditTaskName,
+    setEditTaskDescription,
+  } = useTaskActions(tasks, setTasks);
 
   const token = Cookies.get('payload');
   const userDetails: User|null = token ? decryptPayload(token) as User : null;
@@ -54,6 +67,18 @@ export const TasksPage = () => {
         </Box>
       </ThemeProvider>
     );
+  }
+  
+  const getAvatarSrcPath = (user: User) => {
+    if (user.username === 'Lovisha :)') {
+      return `/assets/avatars/0.jpeg`;
+    } else if (user.username === 'Lakshya') {
+      return `/assets/avatars/9.webp`;
+    } else if (user.username === 'Lavesh') {
+      return `/assets/avatars/11.webp`;
+    }
+
+    return `/assets/avatars/${user.avatar}.png`;
   }
 
   return (
@@ -83,7 +108,7 @@ export const TasksPage = () => {
           {users.map((user) => (
             <Box key={user.userId} sx={{ width: '200px', textAlign: 'center' }}>
               <Avatar
-                src={`${process.env.PUBLIC_URL}/assets/${user.avatar}.png`}
+                src={getAvatarSrcPath(user)}
                 alt={user.username}
                 sx={{ width: 56, height: 56, margin: '0 auto 8px' }}
               />
@@ -99,9 +124,48 @@ export const TasksPage = () => {
                       onChange={() => handleToggleComplete(task.id, !task.completed)}
                     />
                     <Box sx={{ flexGrow: 1 }}>
-                      <Typography variant="body1">{task.title}</Typography>
-                      <Typography variant="body2" color="textSecondary">{task.description}</Typography>
+                        {editingTask === task.id ? (
+                        <>
+                          <TextField
+                            variant="outlined"
+                            size="small"
+                            value={editTaskName}
+                            onChange={(e) => setEditTaskName(e.target.value)}
+                            sx={{ marginBottom: '8px' }}
+                          />
+                          <TextField
+                            variant="outlined"
+                            size="small"
+                            value={editTaskDescription}
+                            onChange={(e) => setEditTaskDescription(e.target.value)}
+                            sx={{ marginBottom: '8px' }}
+                          />
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleUpdateTask(task.id)}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                        </>
+                      ) : (
+                        <>
+                          <Typography variant="body1">{task.title}</Typography>
+                          <Typography variant="body2" color="textSecondary">{task.description}</Typography>
+                        </>
+                      )}
                     </Box>
+                    <IconButton
+                      color="primary"
+                      onClick={() => handleEditTask(task)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="secondary"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </Paper>
                 ))}
               {userDetails && userDetails.userId === user.userId && (

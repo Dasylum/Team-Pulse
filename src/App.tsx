@@ -35,7 +35,6 @@ function App() {
   };
 
   const handleProjectCreated = (projectId: string) => {
-    console.log('Project created:', projectId);
     setCreatingProject(false);
     navigate(`/tasks/${projectId}`);
   };

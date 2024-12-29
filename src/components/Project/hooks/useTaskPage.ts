@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, addDoc, updateDoc, arrayUnion, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
 import { decryptPayload } from '../../../utils/crypto';
 import Cookies from 'js-cookie';
@@ -30,31 +30,28 @@ export const useTasksPage = () => {
   const [newTaskDescription, setNewTaskDescription] = useState<string>('');
   const [addingTask, setAddingTask] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = Cookies.get('payload');
-    if (!token) {
-      navigate(`/signup?redirect=/tasks/${projectId}`);
-      return;
+  const addUserToProject = async (projectId: string | undefined, userDetails: string | undefined) => {
+    try {
+      if (!projectId || !userDetails) return;
+
+      const projectDocRef = doc(db, 'projects', projectId);
+      const result = await updateDoc(projectDocRef, {
+        users: arrayUnion(userDetails),
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error adding user to project:', error);
+      throw error;
     }
+  };
 
-    const fetchTasksAndUsers = async () => {
-      try {
-        // Fetch tasks
-        const tasksQuery = query(collection(db, 'tasks'), where('projectId', '==', projectId));
-        const tasksSnapshot = await getDocs(tasksQuery);
-        const tasksData: Task[] = [];
-        tasksSnapshot.forEach((doc) => {
-          tasksData.push({ id: doc.id, ...doc.data() } as Task);
-        });
-        setTasks(tasksData);
-
-        // Fetch project and users
-        if (!projectId) {
-          console.error('Project ID is undefined');
-          return;
-        }
-        const projectDocRef = doc(db, 'projects', projectId);
-        const projectDoc = await getDoc(projectDocRef);
+  const fetchTasksAndUsers = useCallback(async () => {
+    try {
+      if (!projectId) return;
+      // Fetch project and users
+      const projectDocRef = doc(db, 'projects', projectId);
+      const unsubscribeProject = onSnapshot(projectDocRef, (projectDoc) => {
         if (projectDoc.exists()) {
           const projectData = projectDoc.data();
           setProjectName(projectData.name);
@@ -63,15 +60,52 @@ export const useTasksPage = () => {
         } else {
           console.error('No such document!');
         }
-      } catch (error) {
-        console.error('Error fetching tasks and users:', error);
+      });
+  
+      // Listen for real-time updates on tasks
+      const tasksQuery = query(collection(db, 'tasks'), where('projectId', '==', projectId));
+      const unsubscribeTasks = onSnapshot(tasksQuery, (snapshot) => {
+        const tasksData: Task[] = [];
+        snapshot.forEach((doc) => {
+          tasksData.push({ id: doc.id, ...doc.data() } as Task);
+        });
+        setTasks(tasksData);
+      });
+  
+      return () => {
+        unsubscribeProject();
+        unsubscribeTasks();
+      };
+    } catch (error) {
+      console.error('Error fetching tasks and users:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+  
+  useEffect(() => {
+    const token = Cookies.get('payload');
+    if (!token) {
+      navigate(`/signup?redirect=/tasks/${projectId}`);
+      return;
+    } else {
+        //Separate userAdding to project API call from creating project API call
+      setLoading(true);
+      try {
+        addUserToProject(projectId, token).then((res) => {
+            setLoading(false)
+            fetchTasksAndUsers();
+        });
+      } catch (err) {
+        console.error('Failed to create project:', err);
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    fetchTasksAndUsers();
-  }, [projectId, navigate]);
+    
+
+  }, [projectId, navigate, fetchTasksAndUsers]);
 
   const handleAddTask = async (userId: string) => {
     if (!newTaskName) return;
@@ -85,7 +119,6 @@ export const useTasksPage = () => {
         projectId,
         isDone: false,
       };
-      console.log(newTask);
       const docRef = await addDoc(collection(db, 'tasks'), newTask);
       setTasks([...tasks, { id: docRef.id, title: newTaskName, description: newTaskDescription, assignedTo: userId, completed: false }]);
       setNewTaskName('');
@@ -109,6 +142,7 @@ export const useTasksPage = () => {
 
   return {
     tasks,
+    setTasks, 
     users,
     projectName,
     loading,
